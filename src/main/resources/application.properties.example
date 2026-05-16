@@ -1,0 +1,25 @@
+spring.application.name=Jarvis
+server.port=8080
+server.servlet.context-path=/Jarvis/1.0
+
+# Database
+spring.datasource.url=jdbc:mysql://localhost:3306/jarvis_db
+spring.datasource.username=YOUR_MYSQL_USERNAME
+spring.datasource.password=YOUR_MYSQL_PASSWORD
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+# Email
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=YOUR_GMAIL@gmail.com
+spring.mail.password=YOUR_APP_PASSWORD
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Gemini AI
+gemini.api.key=YOUR_GEMINI_API_KEY
+
+# DevTools
+spring.devtools.restart.enabled=true
+spring.jpa.open-in-view=false

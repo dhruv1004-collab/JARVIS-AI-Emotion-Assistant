@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <title>JARVIS</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #00ff88;
+            font-family: monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Navbar ── */
+        nav {
+            width: 100%;
+            background: rgba(0, 245, 255, 0.03);
+            border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 12px;
+            color: #00f5ff;
+            text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+        }
+
+        .nav-logo span {
+            color: #00ff88;
+        }
+
+        .nav-subtitle {
+            font-size: 0.6rem;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 2px;
+        }
+
+        .nav-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: rgba(0, 245, 255, 0.5);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            box-shadow: 0 0 8px #00ff88;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.2;
+            }
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid rgba(0, 245, 255, 0.4);
+            color: #00f5ff;
+            font-family: monospace;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 245, 255, 0.08);
+            border-color: #00f5ff;
+        }
+
+        .nav-btn-activate {
+            padding: 8px 24px;
+            background: transparent;
+            border: 2px solid #00f5ff;
+            color: #00f5ff;
+            font-family: monospace;
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            box-shadow: 0 0 12px rgba(0, 245, 255, 0.2);
+        }
+
+        .nav-btn-activate:hover {
+            background: rgba(0, 245, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.4);
+        }
+
+        /* ── Main layout ── */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr 1fr;
+            gap: 20px;
+            padding: 24px 40px;
+            flex: 1;
+        }
+
+        /* ── Panel card ── */
+        .panel-card {
+            background: rgba(0, 245, 255, 0.03);
+            border: 1px solid rgba(0, 245, 255, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .panel-title {
+            font-size: 0.65rem;
+            letter-spacing: 4px;
+            color: #00f5ff;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+        }
+
+        /* ── Left panel ── */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .emotion-value {
+            font-size: 2rem;
+            color: #00f5ff;
+            letter-spacing: 4px;
+            text-align: center;
+            display: block;
+            margin-bottom: 6px;
+            text-shadow: 0 0 20px rgba(0, 245, 255, 0.4);
+        }
+
+        .faces-value {
+            font-size: 0.75rem;
+            color: rgba(0, 255, 136, 0.5);
+            letter-spacing: 2px;
+            text-align: center;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .response-text {
+            font-size: 0.82rem;
+            color: rgba(0, 245, 255, 0.7);
+            line-height: 1.7;
+            min-height: 50px;
+            padding: 10px;
+            background: rgba(0, 245, 255, 0.03);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 245, 255, 0.08);
+        }
+
+        /* Music */
+        .music-status {
+            font-size: 1rem;
+            color: #00ff88;
+            letter-spacing: 3px;
+            text-align: center;
+            margin-bottom: 16px;
+            padding: 10px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 4px;
+        }
+
+        .music-btn {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid #00f5ff;
+            color: #00f5ff;
+            font-family: monospace;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 4px;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .music-btn:hover {
+            background: rgba(0, 245, 255, 0.1);
+        }
+
+        .volume-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.7rem;
+            color: rgba(0, 245, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .volume-row input {
+            flex: 1;
+            cursor: pointer;
+            accent-color: #00f5ff;
+        }
+
+        /* ── Center panel ── */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cam-subtitle {
+            font-size: 0.62rem;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        #feed {
+            width: 100%;
+            max-height: 600px;
+            object-fit: cover;
+            border: 2px solid rgba(0, 245, 255, 0.4);
+            border-radius: 6px;
+            box-shadow: 0 0 40px rgba(0, 245, 255, 0.15);
+            display: block;
+        }
+
+        /* ── Right panel — Chat ── */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-card {
+            background: rgba(0, 245, 255, 0.03);
+            border: 1px solid rgba(0, 245, 255, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #chatMessages {
+            flex: 1;
+            min-height: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 245, 255, 0.2) transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg-user {
+            text-align: right;
+        }
+
+        .msg-jarvis {
+            text-align: left;
+        }
+
+        .msg-user span {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 10px 14px;
+            border-radius: 6px;
+            display: inline-block;
+            font-size: 0.82rem;
+            color: #00ff88;
+            max-width: 90%;
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .msg-jarvis span {
+            background: rgba(0, 245, 255, 0.06);
+            border: 1px solid rgba(0, 245, 255, 0.15);
+            padding: 10px 14px;
+            border-radius: 6px;
+            display: inline-block;
+            font-size: 0.82rem;
+            color: #00f5ff;
+            max-width: 90%;
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(0, 245, 255, 0.03);
+            border: 1px solid rgba(0, 245, 255, 0.25);
+            color: #00ff88;
+            font-family: monospace;
+            font-size: 0.82rem;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input-row input:focus {
+            border-color: rgba(0, 245, 255, 0.6);
+        }
+
+        .chat-input-row input::placeholder {
+            color: rgba(0, 255, 136, 0.25);
+        }
+
+        .chat-send-btn {
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid #00f5ff;
+            color: #00f5ff;
+            font-family: monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 4px;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+        }
+
+        .chat-send-btn:hover {
+            background: rgba(0, 245, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div>
+            <div class="nav-logo">JAR<span>VIS</span></div>
+            <div class="nav-subtitle">PERSONAL AI EMOTION ASSISTANT</div>
+        </div>
+
+        <div class="nav-center">
+            <button id="startBtn" onclick="startJarvis()" class="nav-btn-activate">
+                ▶ ACTIVATE JARVIS
+            </button>
+            <div class="nav-status" id="systemStatus" style="display:none;">
+                <div class="status-dot"></div>
+                <span>SYSTEM ONLINE</span>
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <a href="/Jarvis/1.0/dashboard" class="nav-btn">📊 DASHBOARD</a>
+            <div style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 16px;
+        border: 1px solid rgba(0,245,255,0.3);
+        border-radius: 4px;
+    ">
+                <div style="
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,245,255,0.1);
+            border: 1px solid #00f5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        " id="userAvatar">👤</div>
+                <span id="userName" style="
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: #00f5ff;
+        ">--</span>
+                <a href="/Jarvis/1.0/logout" style="
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            color: rgba(255,45,85,0.7);
+            text-decoration: none;
+            border-left: 1px solid rgba(0,245,255,0.2);
+            padding-left: 10px;
+        ">LOGOUT</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main 3-column layout -->
+    <div class="main-layout">
+
+        <!-- LEFT — Emotion + Music -->
+        <div class="left-panel">
+
+            <div class="panel-card">
+                <div class="panel-title">⬡ EMOTION STATUS</div>
+                <span class="emotion-value" id="emotion">--</span>
+                <span class="faces-value">FACES DETECTED: <span id="faceCount">0</span></span>
+                <div class="response-text" id="response">Waiting for detection...</div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">🎵 JARVIS MUSIC</div>
+                <div class="music-status" id="musicStatus">WAITING...</div>
+                <button class="music-btn" onclick="toggleMusic()" id="musicBtn">▶ PLAY</button>
+                <div class="volume-row">
+                    <span>VOL</span>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5"
+                        onchange="setVolume(this.value)" />
+                </div>
+            </div>
+
+            <!-- Session Info -->
+            <div class="panel-card">
+                <div class="panel-title">⬡ SESSION INFO</div>
+                <div style="font-size: 0.8rem; color: rgba(0,245,255,0.6); letter-spacing: 1px; line-height: 2;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>RUNNING</span>
+                        <span id="sessionTime" style="color:#00ff88;">00:00:00</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>STARTED</span>
+                        <span id="sessionStart" style="color:#00ff88;">--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Language Switch -->
+            <div class="panel-card">
+                <div class="panel-title">🌍 LANGUAGE</div>
+                <div style="display:flex; gap:8px;">
+                    <button onclick="setLanguage('en')" id="btnEN" style="
+            flex:1; padding:10px;
+            background: rgba(0,245,255,0.1);
+            border: 1px solid #00f5ff;
+            color: #00f5ff;
+            font-family: monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 4px;
+            letter-spacing: 2px;
+        ">EN</button>
+                    <button onclick="setLanguage('hi')" id="btnHI" style="
+            flex:1; padding:10px;
+            background: transparent;
+            border: 1px solid rgba(0,245,255,0.3);
+            color: rgba(0,245,255,0.5);
+            font-family: monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 4px;
+            letter-spacing: 2px;
+        ">HI</button>
+                </div>
+                <div id="langStatus" style="
+        margin-top: 10px;
+        font-size: 0.7rem;
+        color: rgba(0,245,255,0.4);
+        letter-spacing: 2px;
+        text-align: center;
+    ">ENGLISH MODE</div>
+            </div>
+        </div>
+
+        <!-- CENTER — Camera -->
+        <div class="center-panel">
+            <span class="cam-subtitle">OPTICAL SENSOR // LIVE FEED</span>
+            <img id="feed" alt="webcam feed" />
+
+            <!-- Below camera stats bar -->
+            <div style="
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(0,245,255,0.03);
+    border: 1px solid rgba(0,245,255,0.15);
+    border-radius: 6px;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    color: rgba(0,245,255,0.5);
+    height: 70px;
+    align-items: center;
+">
+                <span>🟢 CAMERA LIVE</span>
+                <span id="currentTime">--:--:--</span>
+                <span>🎯 HAAR CASCADE</span>
+            </div>
+        </div>
+
+        <!-- RIGHT — Chat -->
+        <div class="right-panel">
+            <div class="chat-card">
+                <div class="panel-title">⬡ JARVIS CHAT</div>
+                <div id="chatMessages"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="messageInput" placeholder="Talk to JARVIS..."
+                        onkeypress="if(event.key==='Enter') sendMessage()" />
+                    <button class="chat-send-btn" onclick="sendMessage()">SEND</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <audio id="audioPlayer" loop></audio>
+
+    <script>
+        let lastSpokenEmotion = '';
+        let jarvisActive = false;
+        let emotionTimer = null;
+        let stompClient = null;
+        let currentPlayingEmotion = '';
+        let musicEnabled = false;
+
+        const musicTracks = {
+            happy: '/Jarvis/1.0/music/happy.mp3',
+            sad: '/Jarvis/1.0/music/sad.mp3',
+            angry: '/Jarvis/1.0/music/angry.mp3',
+            neutral: '/Jarvis/1.0/music/neutral.mp3',
+            surprised: '/Jarvis/1.0/music/surprised.mp3'
+        };
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.1;
+                utterance.volume = 1;
+                utterance.lang = currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        async function startJarvis() {
+            jarvisActive = true;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('systemStatus').style.display = 'flex';
+
+            await fetch('/Jarvis/1.0/activate', { method: 'POST' });
+
+            speak(responses[currentLanguage].activated);
+            startSessionTimer();
+            connectWebSocket();
+        }
+
+        function connectWebSocket() {
+            const socket = new SockJS('/Jarvis/1.0/jarvis-websocket');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                console.log('WebSocket Connected');
+                subscribeChatMessage();
+
+                // ← ADD HERE
+                // Welcome message
+                setTimeout(() => {
+                    const box = document.getElementById('chatMessages');
+                    const welcomeDiv = document.createElement('div');
+                    welcomeDiv.className = 'msg-jarvis';
+                    const name = window.loggedUserName || 'there';
+                    welcomeDiv.innerHTML = `<span>JARVIS: Hello ${name}! I am JARVIS your personal AI emotion assistant. I can detect your emotions, play mood-based music and chat with you intelligently. How can I assist you today?</span>`;
+                    box.appendChild(welcomeDiv);
+                    if (jarvisActive) speak(`Hello ${name}! I am JARVIS your personal AI emotion assistant. How can I assist you today?`);
+                }, 1000);
+
+                stompClient.subscribe('/topic/frame', function (message) {
+                    const data = JSON.parse(message.body);
+
+                    document.getElementById('feed').src
+                        = 'data:image/jpeg;base64,' + data.frame;
+                    document.getElementById('faceCount').textContent
+                        = data.faceCount ?? 0;
+                    document.getElementById('emotion').textContent
+                        = data.emotion ?? '--';
+                    document.getElementById('response').textContent
+                        = data.response ?? '';
+
+                    if (jarvisActive && data.faceCount > 0 &&
+                        data.emotion !== lastSpokenEmotion) {
+                        if (emotionTimer) clearTimeout(emotionTimer);
+                        emotionTimer = setTimeout(() => {
+                            const msg = getResponse(data.emotion);
+                            speak(msg);
+                            lastSpokenEmotion = data.emotion;
+                        }, 2000);
+                    }
+                });
+
+            }, function (error) {
+                console.log('WebSocket Error: ' + error);
+                setTimeout(connectWebSocket, 3000);
+            });
+        }
+
+        function subscribeChatMessage() {
+            stompClient.subscribe('/topic/messages', function (message) {
+                const data = JSON.parse(message.body);
+                addMessage(data.user, data.jarvis);
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !stompClient) return;
+
+            const box = document.getElementById('chatMessages');
+
+            const userDiv = document.createElement('div');
+            userDiv.className = 'msg-user';
+            userDiv.innerHTML = `<span>You: ${text}</span>`;
+            box.appendChild(userDiv);
+
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'msg-jarvis';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = '<span>JARVIS is thinking... 🤔</span>';
+            box.appendChild(typingDiv);
+            box.scrollTop = box.scrollHeight;
+
+            stompClient.send('/app/chat', {}, JSON.stringify({
+                text: text,
+                emotion: document.getElementById('emotion').textContent || 'neutral'
+            }));
+
+            input.value = '';
+        }
+
+        function addMessage(userMsg, jarvisMsg) {
+            const box = document.getElementById('chatMessages');
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+
+            const jarvisDiv = document.createElement('div');
+            jarvisDiv.className = 'msg-jarvis';
+            jarvisDiv.innerHTML = `<span>JARVIS: ${jarvisMsg}</span>`;
+            box.appendChild(jarvisDiv);
+            box.scrollTop = box.scrollHeight;
+
+            if (jarvisActive) speak(jarvisMsg);
+        }
+
+        function toggleMusic() {
+            const audio = document.getElementById('audioPlayer');
+            const btn = document.getElementById('musicBtn');
+            if (musicEnabled) {
+                audio.pause();
+                musicEnabled = false;
+                btn.textContent = '▶ PLAY';
+            } else {
+                musicEnabled = true;
+                btn.textContent = '⏸ PAUSE';
+                const emotion = document.getElementById('emotion').textContent || 'neutral';
+                playMusicForEmotion(emotion);
+            }
+        }
+
+        function playMusicForEmotion(emotion) {
+            if (!musicEnabled) return;
+            if (emotion === currentPlayingEmotion) return;
+            const audio = document.getElementById('audioPlayer');
+            const track = musicTracks[emotion] || musicTracks['neutral'];
+            audio.src = track;
+            audio.volume = document.getElementById('volumeSlider').value;
+            audio.play().catch(e => console.log('Audio error: ' + e));
+            currentPlayingEmotion = emotion;
+            document.getElementById('musicStatus').textContent
+                = emotion.toUpperCase() + ' MODE';
+        }
+
+        function setVolume(value) {
+            document.getElementById('audioPlayer').volume = value;
+        }
+
+        setInterval(async () => {
+            if (!musicEnabled) return;
+            try {
+                const res = await fetch('/Jarvis/1.0/latest-mood');
+                const moodData = await res.json();
+                playMusicForEmotion(moodData.emotion);
+            } catch (e) {
+                console.log('Music mood error: ' + e);
+            }
+        }, 30000);
+
+
+
+
+        // ── Session Timer ──
+        let sessionStartTime = null;
+
+        function startSessionTimer() {
+            sessionStartTime = new Date();
+            const startStr = sessionStartTime.toLocaleTimeString('en-GB', { hour12: false });
+            document.getElementById('sessionStart').textContent = startStr;
+
+            setInterval(() => {
+                const now = new Date();
+                const diff = Math.floor((now - sessionStartTime) / 1000);
+                const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+                const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                document.getElementById('sessionTime').textContent = `${h}:${m}:${s}`;
+            }, 1000);
+        }
+
+        // ── Language Switch ──
+        let currentLanguage = 'en';
+
+        const responses = {
+            en: {
+                happy: "You look happy! Keep smiling, it suits you!",
+                sad: "You seem sad. Remember, tough times never last!",
+                angry: "You look angry. Take a deep breath, it will be okay!",
+                surprised: "You look surprised! Did something unexpected happen?",
+                neutral: "You seem calm and focused. Great state of mind!",
+                activated: "JARVIS Activated, I am ready"
+            },
+            hi: {
+                happy: "आप बहुत खुश दिख रहे हैं! मुस्कुराते रहिए!",
+                sad: "आप उदास लग रहे हैं। हिम्मत रखिए, सब ठीक होगा!",
+                angry: "आप गुस्से में हैं। गहरी सांस लीजिए, सब ठीक होगा!",
+                surprised: "आप हैरान लग रहे हैं! क्या कुछ अनोखा हुआ?",
+                neutral: "आप शांत और केंद्रित हैं। बहुत अच्छा!",
+                activated: "जार्विस शुरू हो गया, मैं तैयार हूं"
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+
+            const btnEN = document.getElementById('btnEN');
+            const btnHI = document.getElementById('btnHI');
+            const langStatus = document.getElementById('langStatus');
+
+            if (lang === 'en') {
+                btnEN.style.background = 'rgba(0,245,255,0.1)';
+                btnEN.style.border = '1px solid #00f5ff';
+                btnEN.style.color = '#00f5ff';
+                btnHI.style.background = 'transparent';
+                btnHI.style.border = '1px solid rgba(0,245,255,0.3)';
+                btnHI.style.color = 'rgba(0,245,255,0.5)';
+                langStatus.textContent = 'ENGLISH MODE';
+                speak("Language changed to English");
+            } else {
+                btnHI.style.background = 'rgba(0,245,255,0.1)';
+                btnHI.style.border = '1px solid #00f5ff';
+                btnHI.style.color = '#00f5ff';
+                btnEN.style.background = 'transparent';
+                btnEN.style.border = '1px solid rgba(0,245,255,0.3)';
+                btnEN.style.color = 'rgba(0,245,255,0.5)';
+                langStatus.textContent = 'HINDI MODE';
+                speak("भाषा हिंदी में बदल दी गई है");
+            }
+        }
+
+        function getResponse(emotion) {
+            return responses[currentLanguage][emotion]
+                || responses[currentLanguage]['neutral'];
+        }
+
+        // Fetch logged in user info
+        async function loadUserInfo() {
+            try {
+                const res = await fetch('/Jarvis/1.0/user-info');
+                const data = await res.json();
+                document.getElementById('userName').textContent = data.name.toUpperCase();
+
+                // Store name globally for welcome message
+                window.loggedUserName = data.name;
+            } catch (e) {
+                console.log('User info error: ' + e);
+            }
+        }
+
+        // Call on page load
+        loadUserInfo();
+
+        // Live clock below camera
+        setInterval(() => {
+            document.getElementById('currentTime').textContent =
+                new Date().toLocaleTimeString('en-GB', { hour12: false });
+        }, 1000);
+
+        
+        window.addEventListener('beforeunload', () => {
+            fetch('/Jarvis/1.0/deactivate', { method: 'POST' });
+        });
+    </script>
+
+</body>
+
+</html>

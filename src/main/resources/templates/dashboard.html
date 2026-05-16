@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>JARVIS — Mood Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #0a0a0a;
+            color: #00ff88;
+            font-family: monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Navbar ── */
+        nav {
+            width: 100%;
+            background: rgba(0,245,255,0.03);
+            border-bottom: 1px solid rgba(0,245,255,0.15);
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 12px;
+            color: #00f5ff;
+            text-shadow: 0 0 20px rgba(0,245,255,0.5);
+        }
+
+        .nav-logo span { color: #00ff88; }
+
+        .nav-subtitle {
+            font-size: 0.6rem;
+            letter-spacing: 4px;
+            color: rgba(255,255,255,0.25);
+            margin-top: 2px;
+        }
+
+        .nav-center {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: rgba(0,245,255,0.4);
+        }
+
+        .nav-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid rgba(0,245,255,0.4);
+            color: #00f5ff;
+            font-family: monospace;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0,245,255,0.08);
+            border-color: #00f5ff;
+        }
+
+        /* ── Stats row ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding: 24px 40px 0;
+        }
+
+        .stat-card {
+            background: rgba(0,245,255,0.03);
+            border: 1px solid rgba(0,245,255,0.15);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            color: #00f5ff;
+            display: block;
+            text-shadow: 0 0 20px rgba(0,245,255,0.3);
+        }
+
+        .stat-label {
+            font-size: 0.62rem;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 6px;
+            display: block;
+        }
+
+        /* ── Main layout ── */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px 40px 40px;
+            flex: 1;
+        }
+
+        /* ── Panel ── */
+        .panel {
+            background: rgba(0,245,255,0.03);
+            border: 1px solid rgba(0,245,255,0.15);
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .panel-title {
+            font-size: 0.65rem;
+            letter-spacing: 4px;
+            color: #00f5ff;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0,245,255,0.1);
+        }
+
+        /* ── Table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        thead tr {
+            border-bottom: 1px solid rgba(0,245,255,0.15);
+        }
+
+        th {
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 0.62rem;
+            letter-spacing: 3px;
+            color: #00f5ff;
+            font-weight: normal;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(0,245,255,0.05);
+        }
+
+        tbody tr:hover {
+            background: rgba(0,245,255,0.03);
+        }
+
+        .td-num { color: rgba(255,255,255,0.2); }
+        .td-time { color: rgba(255,255,255,0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div>
+            <div class="nav-logo">JAR<span>VIS</span></div>
+            <div class="nav-subtitle">PERSONAL AI EMOTION ASSISTANT</div>
+        </div>
+        <div class="nav-center">MOOD DASHBOARD</div>
+        <a href="/Jarvis/1.0" class="nav-btn">← BACK TO JARVIS</a>
+    </nav>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <span class="stat-value" id="totalMoods">0</span>
+            <span class="stat-label">TOTAL MOODS</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="dominantEmotion">--</span>
+            <span class="stat-label">DOMINANT EMOTION</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="happyCount">0</span>
+            <span class="stat-label">HAPPY MOMENTS</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="neutralCount">0</span>
+            <span class="stat-label">NEUTRAL MOMENTS</span>
+        </div>
+    </div>
+
+    <!-- Main layout -->
+    <div class="main-layout">
+
+        <!-- LEFT — Chart -->
+        <div class="panel">
+            <div class="panel-title">⬡ EMOTION DISTRIBUTION</div>
+            <canvas id="emotionChart" height="100"></canvas>
+        </div>
+
+        <!-- RIGHT — History table -->
+        <div class="panel">
+            <div class="panel-title">⬡ RECENT MOOD HISTORY</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>EMOTION</th>
+                        <th>TIME</th>
+                    </tr>
+                </thead>
+                <tbody id="moodTable"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+<script>
+    const EMOTION_COLOR = {
+        happy:     '#00ff88',
+        neutral:   '#00f5ff',
+        sad:       '#4488ff',
+        angry:     '#ff2d55',
+        surprised: '#ffcc00',
+        fear:      '#aa44ff',
+        disgust:   '#ff8800',
+        unknown:   '#ffffff30'
+    };
+
+    async function loadDashboard() {
+        const res  = await fetch('/Jarvis/1.0/moods');
+        const data = await res.json();
+
+        const count = {};
+
+        if (data.length === 0) {
+            document.getElementById('totalMoods').textContent = '0';
+            return;
+        }
+
+        data.forEach(m => {
+            count[m.emotion] = (count[m.emotion] || 0) + 1;
+        });
+
+        // Stats
+        const dominant = Object.keys(count).reduce((a, b) => count[a] > count[b] ? a : b);
+        document.getElementById('totalMoods').textContent = data.length;
+        document.getElementById('dominantEmotion').textContent = dominant.toUpperCase();
+        document.getElementById('happyCount').textContent = count['happy'] || 0;
+        document.getElementById('neutralCount').textContent = count['neutral'] || 0;
+
+        // Chart
+        new Chart(document.getElementById('emotionChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(count).map(e => e.toUpperCase()),
+                datasets: [{
+                    data: Object.values(count),
+                    backgroundColor: Object.keys(count).map(e => EMOTION_COLOR[e] || '#ffffff30'),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#00f5ff',
+                            font: { family: 'monospace' },
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        // Table — last 20
+        const recent = data.slice(-20).reverse();
+        const tbody  = document.getElementById('moodTable');
+        recent.forEach((m, i) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="td-num">${i + 1}</td>
+                <td style="color: ${EMOTION_COLOR[m.emotion] || '#fff'}; letter-spacing: 2px;">
+                    ${m.emotion.toUpperCase()}
+                </td>
+                <td class="td-time">${new Date(m.detectedAt).toLocaleString()}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    loadDashboard();
+</script>
+
+</body>
+</html>
