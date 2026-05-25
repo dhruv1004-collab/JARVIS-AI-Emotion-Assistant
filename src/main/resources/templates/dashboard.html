@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <title>JARVIS — Mood Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             background: #0a0a0a;
@@ -19,8 +24,8 @@
         /* ── Navbar ── */
         nav {
             width: 100%;
-            background: rgba(0,245,255,0.03);
-            border-bottom: 1px solid rgba(0,245,255,0.15);
+            background: rgba(0, 245, 255, 0.03);
+            border-bottom: 1px solid rgba(0, 245, 255, 0.15);
             padding: 0 40px;
             height: 64px;
             display: flex;
@@ -33,28 +38,30 @@
             font-weight: 900;
             letter-spacing: 12px;
             color: #00f5ff;
-            text-shadow: 0 0 20px rgba(0,245,255,0.5);
+            text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
         }
 
-        .nav-logo span { color: #00ff88; }
+        .nav-logo span {
+            color: #00ff88;
+        }
 
         .nav-subtitle {
             font-size: 0.6rem;
             letter-spacing: 4px;
-            color: rgba(255,255,255,0.25);
+            color: rgba(255, 255, 255, 0.25);
             margin-top: 2px;
         }
 
         .nav-center {
             font-size: 0.7rem;
             letter-spacing: 4px;
-            color: rgba(0,245,255,0.4);
+            color: rgba(0, 245, 255, 0.4);
         }
 
         .nav-btn {
             padding: 8px 20px;
             background: transparent;
-            border: 1px solid rgba(0,245,255,0.4);
+            border: 1px solid rgba(0, 245, 255, 0.4);
             color: #00f5ff;
             font-family: monospace;
             font-size: 0.72rem;
@@ -66,7 +73,7 @@
         }
 
         .nav-btn:hover {
-            background: rgba(0,245,255,0.08);
+            background: rgba(0, 245, 255, 0.08);
             border-color: #00f5ff;
         }
 
@@ -79,8 +86,8 @@
         }
 
         .stat-card {
-            background: rgba(0,245,255,0.03);
-            border: 1px solid rgba(0,245,255,0.15);
+            background: rgba(0, 245, 255, 0.03);
+            border: 1px solid rgba(0, 245, 255, 0.15);
             border-radius: 8px;
             padding: 20px;
             text-align: center;
@@ -90,13 +97,13 @@
             font-size: 2.2rem;
             color: #00f5ff;
             display: block;
-            text-shadow: 0 0 20px rgba(0,245,255,0.3);
+            text-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
         }
 
         .stat-label {
             font-size: 0.62rem;
             letter-spacing: 3px;
-            color: rgba(255,255,255,0.3);
+            color: rgba(255, 255, 255, 0.3);
             margin-top: 6px;
             display: block;
         }
@@ -112,8 +119,8 @@
 
         /* ── Panel ── */
         .panel {
-            background: rgba(0,245,255,0.03);
-            border: 1px solid rgba(0,245,255,0.15);
+            background: rgba(0, 245, 255, 0.03);
+            border: 1px solid rgba(0, 245, 255, 0.15);
             border-radius: 8px;
             padding: 24px;
         }
@@ -124,7 +131,7 @@
             color: #00f5ff;
             margin-bottom: 20px;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(0,245,255,0.1);
+            border-bottom: 1px solid rgba(0, 245, 255, 0.1);
         }
 
         /* ── Table ── */
@@ -135,7 +142,7 @@
         }
 
         thead tr {
-            border-bottom: 1px solid rgba(0,245,255,0.15);
+            border-bottom: 1px solid rgba(0, 245, 255, 0.15);
         }
 
         th {
@@ -149,17 +156,23 @@
 
         td {
             padding: 10px 8px;
-            border-bottom: 1px solid rgba(0,245,255,0.05);
+            border-bottom: 1px solid rgba(0, 245, 255, 0.05);
         }
 
         tbody tr:hover {
-            background: rgba(0,245,255,0.03);
+            background: rgba(0, 245, 255, 0.03);
         }
 
-        .td-num { color: rgba(255,255,255,0.2); }
-        .td-time { color: rgba(255,255,255,0.4); }
+        .td-num {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .td-time {
+            color: rgba(255, 255, 255, 0.4);
+        }
     </style>
 </head>
+
 <body>
 
     <!-- Navbar -->
@@ -218,83 +231,181 @@
 
     </div>
 
-<script>
-    const EMOTION_COLOR = {
-        happy:     '#00ff88',
-        neutral:   '#00f5ff',
-        sad:       '#4488ff',
-        angry:     '#ff2d55',
-        surprised: '#ffcc00',
-        fear:      '#aa44ff',
-        disgust:   '#ff8800',
-        unknown:   '#ffffff30'
-    };
+    <script>
+        const EMOTION_COLOR = {
+            happy: '#00ff88',
+            neutral: '#00f5ff',
+            sad: '#4488ff',
+            angry: '#ff2d55',
+            surprised: '#ffcc00',
+            fear: '#aa44ff',
+            disgust: '#ff8800',
+            unknown: '#ffffff30'
+        };
 
-    async function loadDashboard() {
-        const res  = await fetch('/Jarvis/1.0/moods');
-        const data = await res.json();
+        async function loadDashboard() {
+            const res = await fetch('/Jarvis/1.0/moods');
+            const data = await res.json();
 
-        const count = {};
+            const count = {};
 
-        if (data.length === 0) {
-            document.getElementById('totalMoods').textContent = '0';
-            return;
-        }
+            if (data.length === 0) {
+                document.getElementById('totalMoods').textContent = '0';
+                return;
+            }
 
-        data.forEach(m => {
-            count[m.emotion] = (count[m.emotion] || 0) + 1;
-        });
+            data.forEach(m => {
+                count[m.emotion] = (count[m.emotion] || 0) + 1;
+            });
 
-        // Stats
-        const dominant = Object.keys(count).reduce((a, b) => count[a] > count[b] ? a : b);
-        document.getElementById('totalMoods').textContent = data.length;
-        document.getElementById('dominantEmotion').textContent = dominant.toUpperCase();
-        document.getElementById('happyCount').textContent = count['happy'] || 0;
-        document.getElementById('neutralCount').textContent = count['neutral'] || 0;
+            // Stats
+            const dominant = Object.keys(count).reduce((a, b) => count[a] > count[b] ? a : b);
+            document.getElementById('totalMoods').textContent = data.length;
+            document.getElementById('dominantEmotion').textContent = dominant.toUpperCase();
+            document.getElementById('happyCount').textContent = count['happy'] || 0;
+            document.getElementById('neutralCount').textContent = count['neutral'] || 0;
 
-        // Chart
-        new Chart(document.getElementById('emotionChart'), {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(count).map(e => e.toUpperCase()),
-                datasets: [{
-                    data: Object.values(count),
-                    backgroundColor: Object.keys(count).map(e => EMOTION_COLOR[e] || '#ffffff30'),
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#00f5ff',
-                            font: { family: 'monospace' },
-                            padding: 20
+            // Chart
+            new Chart(document.getElementById('emotionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(count).map(e => e.toUpperCase()),
+                    datasets: [{
+                        data: Object.values(count),
+                        backgroundColor: Object.keys(count).map(e => EMOTION_COLOR[e] || '#ffffff30'),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#00f5ff',
+                                font: { family: 'monospace' },
+                                padding: 20
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
 
-        // Table — last 20
-        const recent = data.slice(-20).reverse();
-        const tbody  = document.getElementById('moodTable');
-        recent.forEach((m, i) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
+            // Table — last 20
+            const recent = data.slice(-20).reverse();
+            const tbody = document.getElementById('moodTable');
+            recent.forEach((m, i) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
                 <td class="td-num">${i + 1}</td>
                 <td style="color: ${EMOTION_COLOR[m.emotion] || '#fff'}; letter-spacing: 2px;">
                     ${m.emotion.toUpperCase()}
                 </td>
                 <td class="td-time">${new Date(m.detectedAt).toLocaleString()}</td>
             `;
-            tbody.appendChild(row);
-        });
-    }
+                tbody.appendChild(row);
+            });
+        }
 
-    loadDashboard();
-</script>
+        let footerOpen = false;
 
+        function toggleFooter() {
+            const footer = document.getElementById('jarvisFooter');
+            const arrow = document.getElementById('footerArrow');
+            footerOpen = !footerOpen;
+            if (footerOpen) {
+                footer.style.height = '200px';
+                arrow.textContent = '▼ LESS INFO';
+            } else {
+                footer.style.height = '36px';
+                arrow.textContent = '▲ MORE INFO';
+            }
+        }
+
+        loadDashboard();
+    </script>
+
+    <footer id="jarvisFooter" style="
+    width: 100%;
+    background: rgba(10,10,10,0.95);
+    border-top: 1px solid rgba(0,245,255,0.3);
+    overflow: hidden;
+    transition: height 0.3s ease;
+    height: 36px;
+    position: sticky;
+    bottom: 0;
+    cursor: pointer;
+" onclick="toggleFooter()">
+
+    <!-- Collapsed view -->
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 40px;
+        height: 36px;
+        font-size: 0.65rem;
+        letter-spacing: 3px;
+        color: #00f5ff;
+    ">
+        <span>🤖 JARVIS AI EMOTION ASSISTANT © 2026 DHRUV KUMAR</span>
+        <span id="footerArrow" style="color: rgba(0,255,136,0.7);;">▲ MORE INFO</span>
+    </div>
+
+    <!-- Expanded view -->
+    <div style="
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        padding: 20px 40px;
+        border-top: 1px solid rgba(0,245,255,0.2);
+    ">
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ TECH STACK</div>
+            <div style="font-size: 0.75rem; color: #00ff88; line-height: 2;">
+                Java 21 + Spring Boot<br>
+                OpenCV 4.9<br>
+                Python Flask<br>
+                WebSockets + STOMP<br>
+                Google Gemini AI
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ FEATURES</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                Real-time Face Detection<br>
+                Emotion Recognition<br>
+                AI Chat (Gemini)<br>
+                Voice Input + TTS<br>
+                Mood Analytics
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ DATABASE</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                MySQL 8.0<br>
+                Spring Data JPA<br>
+                Hibernate ORM<br>
+                Spring Security<br>
+                BCrypt Encryption
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ DEVELOPER</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                Dhruv Kumar<br>
+                Java Developer<br>
+                <a href="https://github.com/dhruv1004-collab/JARVIS-AI-Emotion-Assistant"
+                   target="_blank"
+                   style="color: #00f5ff; text-decoration: none;">
+                   GitHub →
+                </a><br>
+                Built with ❤️<br>
+                © 2026
+            </div>
+        </div>
+    </div>
+
+</footer>
 </body>
+
 </html>

@@ -1,59 +1,60 @@
 package com.Jarvis.Jarvis.service;
 
+import com.Jarvis.Jarvis.model.MoodHistory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import com.Jarvis.Jarvis.model.MoodHistory;
-
 @Service
 public class GeminiService {
+
     @Value("${gemini.api.key}")
-    public String apiKey;
+    private String apiKey;
 
     private final WebClient webClient = WebClient.create("https://generativelanguage.googleapis.com");
 
     public String chat(String userMessage, String emotion, List<MoodHistory> recentMoods) {
         try {
-
-            // Build mood history string
             StringBuilder moodHistory = new StringBuilder();
             for (MoodHistory mood : recentMoods) {
                 moodHistory.append(mood.getEmotion())
-                        .append(" at ")
-                        .append(mood.getDetectedAt())
-                        .append(", ");
+                          .append(" at ")
+                          .append(mood.getDetectedAt())
+                          .append(", ");
             }
 
-            String prompt = "You are JARVIS, a smart AI assistant. " +
-                    "The user's current detected emotion is: " + emotion + ". " +
-                    "Recent mood history: " + moodHistory.toString() + ". " +
-                    "IMPORTANT RULES: " +
-                    "1. Only mention the user's emotion or mood history if they specifically ask about it. " +
-                    "2. For greetings like 'hello' or 'hi' — just greet back normally. " +
-                    "3. For general questions — answer normally like a smart assistant. " +
-                    "4. Only use emotion/mood data when user asks 'how am I feeling', 'what is my mood', 'analyze my emotion' etc. "
-                    +
-                    "Respond in 1-2 sentences. " +
-                    "User says: " + userMessage;
+            String prompt = "You are JARVIS, a personal AI emotion assistant like Iron Man's JARVIS. " +
+                "You are warm, empathetic and intelligent. " +
+                "The user's current detected emotion from webcam is: " + emotion + ". " +
+                "Recent mood history: " + moodHistory.toString() + ". " +
+                "RULES: " +
+                "1. If user talks about feelings or emotions — be empathetic and supportive. " +
+                "2. If user asks about their mood — use the detected emotion data. " +
+                "3. For greetings — greet warmly and personally. " +
+                "4. For general questions — answer helpfully. " +
+                "5. Always respond in 2-3 sentences maximum. " +
+                "6. Be conversational and natural — not robotic. " +
+                "User says: " + userMessage;
 
             Map<String, Object> requestBody = Map.of(
-                    "contents", List.of(
-                            Map.of("parts", List.of(
-                                    Map.of("text", prompt)))));
+                "contents", List.of(
+                    Map.of("parts", List.of(
+                        Map.of("text", prompt)
+                    ))
+                )
+            );
 
-            Map response = webClient.post()
-                    .uri("/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey)
-                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(Map.class)
-                    .block();
+            Map<String, Object> response = webClient.post()
+                .uri("/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .block();
 
-            // Extract Text from reponse
             List candidates = (List) response.get("candidates");
             Map candidate = (Map) candidates.get(0);
             Map content = (Map) candidate.get("content");
@@ -64,7 +65,7 @@ public class GeminiService {
 
         } catch (Exception e) {
             System.out.println("Gemini error: " + e.getMessage());
-            return "I am having trouble connecting to my AI brain. Please try again!";
+            return "I am having trouble connecting. Please try again!";
         }
     }
 }

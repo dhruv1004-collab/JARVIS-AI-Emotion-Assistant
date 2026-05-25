@@ -371,6 +371,28 @@
         .chat-send-btn:hover {
             background: rgba(0, 245, 255, 0.1);
         }
+
+        #micBtn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(0, 245, 255, 0.05);
+            border: 2px solid #00f5ff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        #micBtn:hover {
+            background: rgba(0, 245, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 245, 255, 0.8),
+                0 0 30px rgba(0, 245, 255, 0.5),
+                0 0 60px rgba(0, 245, 255, 0.3);
+            transform: scale(1.1);
+            border-color: #00f5ff;
+        }
     </style>
 </head>
 
@@ -539,8 +561,32 @@
                 <div class="panel-title">⬡ JARVIS CHAT</div>
                 <div id="chatMessages"></div>
                 <div class="chat-input-row">
-                    <input type="text" id="messageInput" placeholder="Talk to JARVIS..."
+                    <input type="text" id="messageInput" placeholder="Talk or speak to JARVIS..."
                         onkeypress="if(event.key==='Enter') sendMessage()" />
+                    <button id="micBtn" onclick="toggleVoice()" style="
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0,245,255,0.05);
+    border: 2px solid #00f5ff;
+    color: #00f5ff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(0,245,255,0.3),
+                0 0 20px rgba(0,245,255,0.1);
+    animation: micGlow 2s ease-in-out infinite;
+">
+                        <svg id="micSvg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00f5ff"
+                            stroke-width="2" stroke-linecap="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                            <line x1="12" y1="19" x2="12" y2="23" />
+                            <line x1="8" y1="23" x2="16" y2="23" />
+                        </svg>
+                    </button>
                     <button class="chat-send-btn" onclick="sendMessage()">SEND</button>
                 </div>
             </div>
@@ -557,6 +603,9 @@
         let stompClient = null;
         let currentPlayingEmotion = '';
         let musicEnabled = false;
+
+        let recognition = null;
+        let isListening = false;
 
         const musicTracks = {
             happy: '/Jarvis/1.0/music/happy.mp3',
@@ -588,6 +637,14 @@
             speak(responses[currentLanguage].activated);
             startSessionTimer();
             connectWebSocket();
+        }
+
+        function toggleVoice() {
+            if (isListening) {
+                stopVoice();
+            } else {
+                startVoice();
+            }
         }
 
         function connectWebSocket() {
@@ -830,11 +887,165 @@
                 new Date().toLocaleTimeString('en-GB', { hour12: false });
         }, 1000);
 
-        
+
         window.addEventListener('beforeunload', () => {
             fetch('/Jarvis/1.0/deactivate', { method: 'POST' });
         });
+
+        function startVoice() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Voice recognition not supported in this browser! Use Chrome.');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+
+            // Set language based on current JARVIS language
+            recognition.lang = currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function () {
+                isListening = true;
+                document.getElementById('micBtn').style.background = 'rgba(255,45,85,0.1)';
+                document.getElementById('micBtn').style.borderColor = '#ff2d55';
+                document.getElementById('micBtn').style.boxShadow = '0 0 20px rgba(255,45,85,0.6), 0 0 40px rgba(255,45,85,0.3)';
+                document.getElementById('messageInput').placeholder = 'Listening... 🔴';
+                document.getElementById('micSvg').setAttribute('stroke', '#ff2d55');
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('messageInput').value = transcript;
+                stopVoice();
+                // Auto send after voice input
+                setTimeout(() => sendMessage(), 500);
+            };
+
+            recognition.onerror = function (event) {
+                console.log('Voice error: ' + event.error);
+                stopVoice();
+            };
+
+            recognition.onend = function () {
+                stopVoice();
+            };
+
+            recognition.start();
+        }
+
+        function stopVoice() {
+            isListening = false;
+            if (recognition) recognition.stop();
+            const micBtn = document.getElementById('micBtn');
+            micBtn.style.background = 'rgba(0,245,255,0.05)';
+            micBtn.style.borderColor = '#00f5ff';
+            micBtn.style.boxShadow = '';
+            micBtn.style.animation = '';
+            // Fix — use getElementById instead of querySelector
+            document.getElementById('micSvg').setAttribute('stroke', '#00f5ff');
+            document.getElementById('messageInput').placeholder = 'Talk or speak to JARVIS...';
+        }
+         let footerOpen = false;
+
+        function toggleFooter() {
+            const footer = document.getElementById('jarvisFooter');
+            const arrow = document.getElementById('footerArrow');
+            footerOpen = !footerOpen;
+            if (footerOpen) {
+                footer.style.height = '200px';
+                arrow.textContent = '▼ LESS INFO';
+            } else {
+                footer.style.height = '36px';
+                arrow.textContent = '▲ MORE INFO';
+            }
+        }
     </script>
+
+
+<footer id="jarvisFooter" style="
+    width: 100%;
+    background: rgba(10,10,10,0.95);
+    border-top: 1px solid rgba(0,245,255,0.3);
+    overflow: hidden;
+    transition: height 0.3s ease;
+    height: 36px;
+    position: sticky;
+    bottom: 0;
+    cursor: pointer;
+" onclick="toggleFooter()">
+
+    <!-- Collapsed view -->
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 40px;
+        height: 36px;
+        font-size: 0.65rem;
+        letter-spacing: 3px;
+        color: #00f5ff;
+    ">
+        <span>🤖 JARVIS AI EMOTION ASSISTANT © 2026 DHRUV KUMAR</span>
+        <span id="footerArrow" style="color: rgba(0,255,136,0.7);;">▲ MORE INFO</span>
+    </div>
+
+    <!-- Expanded view -->
+    <div style="
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        padding: 20px 40px;
+        border-top: 1px solid rgba(0,245,255,0.2);
+    ">
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ TECH STACK</div>
+            <div style="font-size: 0.75rem; color: #00ff88; line-height: 2;">
+                Java 21 + Spring Boot<br>
+                OpenCV 4.9<br>
+                Python Flask<br>
+                WebSockets + STOMP<br>
+                Google Gemini AI
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ FEATURES</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                Real-time Face Detection<br>
+                Emotion Recognition<br>
+                AI Chat (Gemini)<br>
+                Voice Input + TTS<br>
+                Mood Analytics
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ DATABASE</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                MySQL 8.0<br>
+                Spring Data JPA<br>
+                Hibernate ORM<br>
+                Spring Security<br>
+                BCrypt Encryption
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ DEVELOPER</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                Dhruv Kumar<br>
+                Java Developer<br>
+                <a href="https://github.com/dhruv1004-collab/JARVIS-AI-Emotion-Assistant"
+                   target="_blank"
+                   style="color: #00f5ff; text-decoration: none;">
+                   GitHub →
+                </a><br>
+                Built with ❤️<br>
+                © 2026
+            </div>
+        </div>
+    </div>
+
+</footer>
 
 </body>
 

@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <title>JARVIS — Login</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             background: #0a0a0a;
@@ -17,8 +22,8 @@
 
         nav {
             width: 100%;
-            background: rgba(0,245,255,0.03);
-            border-bottom: 1px solid rgba(0,245,255,0.15);
+            background: rgba(0, 245, 255, 0.03);
+            border-bottom: 1px solid rgba(0, 245, 255, 0.15);
             padding: 0 40px;
             height: 64px;
             display: flex;
@@ -31,15 +36,17 @@
             font-weight: 900;
             letter-spacing: 12px;
             color: #00f5ff;
-            text-shadow: 0 0 20px rgba(0,245,255,0.5);
+            text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
         }
 
-        .nav-logo span { color: #00ff88; }
+        .nav-logo span {
+            color: #00ff88;
+        }
 
         .nav-subtitle {
             font-size: 0.6rem;
             letter-spacing: 4px;
-            color: rgba(255,255,255,0.25);
+            color: rgba(255, 255, 255, 0.25);
             margin-top: 2px;
         }
 
@@ -51,8 +58,8 @@
         }
 
         .card {
-            background: rgba(0,245,255,0.03);
-            border: 1px solid rgba(0,245,255,0.15);
+            background: rgba(0, 245, 255, 0.03);
+            border: 1px solid rgba(0, 245, 255, 0.15);
             border-radius: 8px;
             padding: 40px;
             width: 400px;
@@ -74,15 +81,15 @@
             display: block;
             font-size: 0.65rem;
             letter-spacing: 3px;
-            color: rgba(0,245,255,0.5);
+            color: rgba(0, 245, 255, 0.5);
             margin-bottom: 8px;
         }
 
         .form-group input {
             width: 100%;
             padding: 12px;
-            background: rgba(0,245,255,0.03);
-            border: 1px solid rgba(0,245,255,0.25);
+            background: rgba(0, 245, 255, 0.03);
+            border: 1px solid rgba(0, 245, 255, 0.25);
             color: #00ff88;
             font-family: monospace;
             font-size: 0.85rem;
@@ -92,7 +99,7 @@
         }
 
         .form-group input:focus {
-            border-color: rgba(0,245,255,0.6);
+            border-color: rgba(0, 245, 255, 0.6);
         }
 
         .btn {
@@ -111,15 +118,15 @@
         }
 
         .btn:hover {
-            background: rgba(0,245,255,0.1);
-            box-shadow: 0 0 20px rgba(0,245,255,0.2);
+            background: rgba(0, 245, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
         }
 
         .link {
             text-align: center;
             margin-top: 20px;
             font-size: 0.72rem;
-            color: rgba(0,245,255,0.4);
+            color: rgba(0, 245, 255, 0.4);
         }
 
         .link a {
@@ -127,11 +134,13 @@
             text-decoration: none;
         }
 
-        .link a:hover { text-decoration: underline; }
+        .link a:hover {
+            text-decoration: underline;
+        }
 
         .error {
-            background: rgba(255,45,85,0.1);
-            border: 1px solid rgba(255,45,85,0.3);
+            background: rgba(255, 45, 85, 0.1);
+            border: 1px solid rgba(255, 45, 85, 0.3);
             color: #ff2d55;
             padding: 10px;
             border-radius: 4px;
@@ -142,8 +151,8 @@
         }
 
         .success {
-            background: rgba(0,255,136,0.1);
-            border: 1px solid rgba(0,255,136,0.3);
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
             color: #00ff88;
             padding: 10px;
             border-radius: 4px;
@@ -152,8 +161,19 @@
             margin-bottom: 20px;
             text-align: center;
         }
+
+        /* Fix browser autofill background color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #0a0a0a inset !important;
+    -webkit-text-fill-color: #00ff88 !important;
+    caret-color: #00ff88;
+}
     </style>
 </head>
+
 <body>
 
     <nav>
@@ -180,11 +200,11 @@
             <form method="post" action="/Jarvis/1.0/login">
                 <div class="form-group">
                     <label>EMAIL</label>
-                    <input type="email" name="username" placeholder="your@gmail.com" required/>
+                    <input type="email" name="username" placeholder="your@gmail.com" required />
                 </div>
                 <div class="form-group">
                     <label>PASSWORD</label>
-                    <input type="password" name="password" placeholder="••••••••" required/>
+                    <input type="password" name="password" placeholder="••••••••" required />
                 </div>
                 <button type="submit" class="btn">▶ LOGIN</button>
             </form>
@@ -195,5 +215,106 @@
         </div>
     </div>
 
+    <script>
+         let footerOpen = false;
+
+        function toggleFooter() {
+            const footer = document.getElementById('jarvisFooter');
+            const arrow = document.getElementById('footerArrow');
+            footerOpen = !footerOpen;
+            if (footerOpen) {
+                footer.style.height = '200px';
+                arrow.textContent = '▼ LESS INFO';
+            } else {
+                footer.style.height = '36px';
+                arrow.textContent = '▲ MORE INFO';
+            }
+        }
+    </script>
+
+
+    <footer id="jarvisFooter" style="
+    width: 100%;
+    background: rgba(10,10,10,0.95);
+    border-top: 1px solid rgba(0,245,255,0.3);
+    overflow: hidden;
+    transition: height 0.3s ease;
+    height: 36px;
+    position: sticky;
+    bottom: 0;
+    cursor: pointer;
+" onclick="toggleFooter()">
+
+    <!-- Collapsed view -->
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 40px;
+        height: 36px;
+        font-size: 0.65rem;
+        letter-spacing: 3px;
+        color: #00f5ff;
+    ">
+        <span>🤖 JARVIS AI EMOTION ASSISTANT © 2026 DHRUV KUMAR</span>
+        <span id="footerArrow" style="color: rgba(0,255,136,0.7);;">▲ MORE INFO</span>
+    </div>
+
+    <!-- Expanded view -->
+    <div style="
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        padding: 20px 40px;
+        border-top: 1px solid rgba(0,245,255,0.2);
+    ">
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ TECH STACK</div>
+            <div style="font-size: 0.75rem; color: #00ff88; line-height: 2;">
+                Java 21 + Spring Boot<br>
+                OpenCV 4.9<br>
+                Python Flask<br>
+                WebSockets + STOMP<br>
+                Google Gemini AI
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ FEATURES</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                Real-time Face Detection<br>
+                Emotion Recognition<br>
+                AI Chat (Gemini)<br>
+                Voice Input + TTS<br>
+                Mood Analytics
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ DATABASE</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                MySQL 8.0<br>
+                Spring Data JPA<br>
+                Hibernate ORM<br>
+                Spring Security<br>
+                BCrypt Encryption
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.65rem; letter-spacing: 3px; color: #00f5ff; margin-bottom: 10px;">⬡ DEVELOPER</div>
+            <div style="font-size: 0.75rem; color: rgba(0,255,136,0.7); line-height: 2;">
+                Dhruv Kumar<br>
+                Java Developer<br>
+                <a href="https://github.com/dhruv1004-collab/JARVIS-AI-Emotion-Assistant"
+                   target="_blank"
+                   style="color: #00f5ff; text-decoration: none;">
+                   GitHub →
+                </a><br>
+                Built with ❤️<br>
+                © 2026
+            </div>
+        </div>
+    </div>
+
+</footer>
 </body>
+
 </html>
